@@ -1,0 +1,45 @@
+
+
+h1 {font-family: helvetica;}
+
+
+pre {border-style:solid;
+     border-color: gray;
+    border-width: medium;
+    padding: 5pt;
+    overflow: auto;}
+
+
+/* .SYNOPSIS {background-color: red;} */
+
+
+.CLASS {margin-left: -50pt;}
+
+.SYNOPSIS + pre {font-family: monospace;
+		 border-width: 0;
+		 color: blue;
+		overflow: visible;}
+
+
+.SOURCE {display: none;}
+
+.SOURCE + pre {display: none;}
+
+
+h1, h2 {margin-left: -50pt;} 
+   
+h2 {border-style: solid;
+    border-width: 1px 0px 0px 0px;
+    margin-top: 40pt;
+   font-family: verdana;}
+/* h1 + h2 {margin-top: */
+body { margin-left: 80pt;
+     width: 600pt;}
+
+
+
+p.display-math  { 
+    text-align: center;
+}
+
+   
