@@ -306,8 +306,10 @@ the resulting uml image.   For this there are two strategies:
   (cl-fad:copy-file (project-path "MathJax.js" :resources) 
 		    (merge-pathnames "MathJax.js" directory)
 		    :overwrite t)
-  (copy-directory-recursively (project-path "expansion/" :resources)
-			      (merge-pathnames "extension/" directory)))
+  (copy-directory-recursively (project-path "extensions/" :resources)
+			      (merge-pathnames "extensions/" directory))
+  (copy-directory-recursively (project-path "images/" :resources)
+			      (merge-pathnames "images/" directory)))
 
 (defun html-dirs-for-organized (org directory)
   (write-additional-files directory)
