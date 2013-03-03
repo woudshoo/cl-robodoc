@@ -1,6 +1,7 @@
 (in-package #:cl-robodoc)
 
-
+(project-pathname:define project-path (:asdf "cl-robodoc")
+  (:resources "resources/"))
 
 
 
@@ -119,10 +120,12 @@ See documentation of ROBODOC-SPLITTER for the resulting output."
       (cxml:attribute "http-equiv" "content-type")
       (cxml:attribute "content" "application/xhtml+xml")
       (cxml:attribute "charset" "UTF-8"))
-    (cxml:with-element "script"
+#+nil    (cxml:with-element "script"
       (cxml:attribute "type" "text/javascript")
-      (cxml:attribute "src" "http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_HTMLorMML")
-#+nil      (cxml:text "  "))))
+      (cxml:attribute "src" "http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_HTMLorMML"))
+  (cxml:with-element "script"
+      (cxml:attribute "type" "text/javascript")
+      (cxml:attribute "src" "MathJax.js?config=TeX-MML-AM_HTMLorMML"))))
 
 (defun write-html-footer (name stream)
   (format stream "</body></html>"))
@@ -168,7 +171,7 @@ the resulting uml image.   For this there are two strategies:
       (s-base64:encode-base64 in stream)))
   (write-string "\">" stream))
 
-(defun process-uml-to-image (args body stream)
+#+nil (defun process-uml-to-image (args body stream)
   "This is called for a form like:
  (:uml uml diagram text) or ((:uml . args) uml diagram text)
 
@@ -203,7 +206,7 @@ the resulting uml image.   For this there are two strategies:
 ;;; The macro expansion will complain abot
 ;;; function calls because that is how it expands.
 ;;; But I am too lazy to make it work right now.
-(lml2::def-special-html :uml
+#+nil (lml2::def-special-html :uml
     #'(lambda (ent args argsp body)
 	(declare (ignore ent))
 	(unless argsp (error "Need body for uml sectoin"))
@@ -276,7 +279,38 @@ the resulting uml image.   For this there are two strategies:
 		   (cxml:text key))))))))))
 	
 
+
+(defun map-name (name source target)
+  (let* ((source-name (merge-pathnames name source))
+	 (source-name-type (make-pathname :name (pathname-name source-name)
+					  :type (pathname-type source-name)))
+	 (source-name-dirs (pathname-directory source-name))
+	 (source-dirs (pathname-directory source))
+	 (start-point (search source-dirs source-name-dirs :test #'equalp :from-end t))
+	 (new-dirs (subseq source-name-dirs (+ start-point (length source-dirs)))))
+    (merge-pathnames source-name-type (merge-pathnames (make-pathname :directory (cons :relative new-dirs)) target))))
+
+(defun copy-directory-recursively (source-dir target-dir)
+  (cl-fad:walk-directory source-dir 
+			 (lambda (fn)
+			   (when (pathname-name fn)
+			     (let ((target-name (map-name fn source-dir target-dir)))
+			       (ensure-directories-exist target-name)
+			       (cl-fad:copy-file fn target-name :overwrite t))))
+			 :directories :breadth-first))
+
+(defun write-additional-files (directory)
+  (cl-fad:copy-file (project-path "doc.css" :resources)
+		    (merge-pathnames "doc.css"   directory)
+		    :overwrite t)
+  (cl-fad:copy-file (project-path "MathJax.js" :resources) 
+		    (merge-pathnames "MathJax.js" directory)
+		    :overwrite t)
+  (copy-directory-recursively (project-path "expansion/" :resources)
+			      (merge-pathnames "extension/" directory)))
+
 (defun html-dirs-for-organized (org directory)
+  (write-additional-files directory)
   (write-html-index org directory)
   (fset:do-map (key value org)
     (declare (ignore value))

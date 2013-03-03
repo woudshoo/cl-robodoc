@@ -2,7 +2,18 @@
 
 (asdf:defsystem #:cl-robodoc
   :serial t
-  :depends-on (:meta-sexp :alexandria :split-sequence :fset :cl-who :cl-fad :lml2 :cxml :cl-ppcre :flexi-streams)
+  :depends-on (:meta-sexp
+	       :alexandria
+	       :split-sequence
+	       :fset
+	       :cl-who
+	       :cl-fad
+	       :lml2
+	       :cxml
+	       :cl-ppcre
+	       :flexi-streams
+	       :trivial-project-pathname
+	       :external-program)
   :components ((:file "package")
 
 	       (:file "split-text-comment")

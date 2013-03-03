@@ -8,17 +8,22 @@
 ;;; but that seems not to work with sbcl on windows.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defparameter *uml-jar* #-darwin "d:/Tools/bin/plantuml.jar"
+	      #+darwin "/Users/woudshoo/bin/plantuml.jar")
+
+
 (defparameter *transcribe-handlers* 
-  `(("uml" :includer include-xml-file :converter ,(lambda (in-name out-name)
-			       (sb-ext:run-program "java" `("-jar" "d:/Tools/bin/plantuml.jar" "-tsvg" ,in-name)
-						   :search t)
+  `(("uml" :includer include-xml-file 
+	   :converter ,(lambda (in-name out-name)
+			       (external-program:run 
+				"java" `("-Djava.awt.headless=true" "-jar" ,*uml-jar* "-tsvg" ,in-name))
 			       out-name))
-    ("gnuplot" :includer include-xml-file :converter ,(lambda (in-name out-name)
-				   (sb-ext:run-program "gnuplot" 
-						       `("-e" "set terminal svg" 
-							      "-e" ,(format nil "set output '~A'" out-name)
-							      ,in-name)
-						       :search t)
+    ("gnuplot" :includer include-xml-file 
+	       :converter ,(lambda (in-name out-name)
+				   (external-program:run "gnuplot" 
+				    `("-e" "set terminal svg" 
+					   "-e" ,(format nil "set output '~A'" out-name)
+					   ,in-name))
 				   out-name))))
 
 (defclass uml-transcribe-handler (cxml:broadcast-handler)
@@ -27,7 +32,9 @@
 
 (defmethod pick-random-name ((handler uml-transcribe-handler))
   (setf (collect-file-name handler)
-	(parse-namestring (format nil "d:/tmp/~A" (random (expt 10 10))))))
+	(parse-namestring (format nil 
+				  #+darwin "/tmp/~A"
+				  #-darwin "d:/tmp/~A" (random (expt 10 10))))))
 
 (defmethod uml-file-name ((handler uml-transcribe-handler))
   (merge-pathnames (make-pathname :type "uml") 
