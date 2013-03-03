@@ -1,0 +1,75 @@
+* cl-robodoc
+
+** Introduction
+
+This project started because I have some body of code which is
+documented with the robodoc documentation markup (see
+[[http://rfsber.home.xs4all.nl/Robo/robodoc.html] [ROBOdoc]])
+
+However I was not really pleased with the output, and
+I wanted to integrate it with plantuml and other tools.
+
+This version here works for me.  However is not polished at all.
+
+** Current Limitations
+
+- Only support a very limited subset of ROBOdoc
+- Will only work on SBCL on Mac OSX and Windows.
+- Need configuration in the sax-handlers.lisp file
+- Does not include MathJAX, this need to be copied in the resource directory.
+
+** How to use
+
+Load the project, and use the function `source-dir-to-html-classes'
+
+** Note on features
+
+*** Math
+
+    Use the same syntax as the MathJAX, it basically just includes your text
+    verbatim in the HTML and let MathJAX do the typesetting.
+    
+    Currently it will copy a local copy form the resources folder in the
+    the lisp source to the generated documentation.  This so that you 
+    can still look at the documentation when offline.  
+
+    However, the MathJAX is currently not included in the repository.
+
+*** UML
+
+    If you include a section with #+uml as follows
+
+#+BEGIN_EXAMPLE
+ * DIAGRAM
+ *    #+uml
+ *        @startuml
+ *           ConfigurationItem *- DSSList
+ *           DSSList o- "*" DSSItem
+ *           class DSSItem #yellow {
+ *           }
+ *        @enduml
+ *       
+#+END_EXAMPLE
+
+    it will render the section following the #+uml marker with plantuml
+    (see sax-handlers.lisp file)
+
+    It will modify the resulting svg image to remove some text stretching
+    and it will try to insert links in the svg image to related definitions.
+
+*** GNUplot
+
+    Similar to the UML, but it is marked by #+plot.
+
+#+BEGIN_EXAMPLE
+ * PLOT
+ *   #+plot
+ *     plot [0:1][0:10] 1/(1-x)
+#+END_EXAMPLE
+
+    
+** Future
+
+I will update this project for my own needs.  However if there is some interest,
+I happily include patches, or put some effort in myself to make it easier to use.
+
