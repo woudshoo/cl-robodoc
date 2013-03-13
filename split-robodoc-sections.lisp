@@ -51,11 +51,11 @@
 )
 
 
-(defun is-part-of-class (entry)
+#+nil (defun is-part-of-class (entry)
   "Returns if the robodoc entry is either a class or a method. (or later maybe a property etc.)"
   (intersection (classification entry) '(#\c #\m #\p)))
 
-(defun name-of-class (entry)
+#+nil (defun name-of-class (entry)
   "Returns a string indicating the class name if it is a class."
   (when (is-part-of-class entry)
     (cond 

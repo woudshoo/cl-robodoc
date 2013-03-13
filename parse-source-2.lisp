@@ -1,8 +1,24 @@
 (in-package #:cl-robodoc)
 
+;;; Design
+;;;
+;;;   The generic design is (logically) as follows:
+;;;
+;;;   1 - read a file and split into robodoc blocks.  A robodoc block is either source or comment.
+;;;   2 - split the stream of block into sections.  (indicated by **** comment starters)
+;;;   3 - Organize the sections, e.g. collect all methods together with the class into `class-description' instances.
+;;;   4 - when exporting, interprete the sections. e.g. make headings, interprete +uml sections, gnuplot sections etc.
+;;;   5 - Export to HMTL files and create an index.html
+;;;
+;;;   Now implementation wise, step 1 creates a stream of blocks which is split by step 2.  The result is a list.
+;;;   Step 3 creates a map from 'class' name to a `class-description'
+;;;   Step 4 & 5 are a bit mixed.  The parsing into headings, lists etc is done first.  This data is 
+;;;   put into a sax-handler.  Certain sax-handlers will take custom tags, such as :uml or :plot and
+;;;   transform transform the result to valid html/xml.
+;;;   
+;;;
 (project-pathname:define project-path (:asdf "cl-robodoc")
   (:resources "resources/"))
-
 
 
 (defun read-file-and-split-to-robodoc (file-name)
@@ -27,23 +43,22 @@ See documentation of ROBODOC-SPLITTER for the resulting output."
 				   (member (pathname-type name) '("H" "CPP") :test #'string-equal)))
     result))
 
-(defun organize (all)
-  "Returns a nested structure of 'bag/set' of the entries in all"
-  (loop 
-     :for entry :in all
-     :for keys = (rest (second entry))
-     :for result = (fset:map ((car keys) (list entry))) 
-     :then (fset:with result (car keys) (cons entry (fset:lookup result (car keys))))
-     :finally (return result)))
 
 
 (defun html-for-entries (entry-list &key class (header-p t) sink)
+  "Call `html-for-entry' on all entries in `entry-list'.  However, the entry-list is sorted on `simple-name'.
+See docuemntation for `html-for-entry'."
   (loop :for entry :in (sort (copy-seq entry-list) #'string< :key #'simple-name) 
      :do
      (html-for-entry entry :class class :header-p header-p :sink sink)))
 
 
 (defun html-for-entry (entry &key class (header-p t) (sink))
+  "Writes to a sax `sink' the formated entry.
+* If header-p is true, a :h2 node is written with as content the simple-name for the entry.
+* If class is specified,  the body of the entry is wrapped in a :div element with class attribute equal to `class'.
+
+See documentation on `beautify-section' how the entry is actually formatted."
   (when header-p  (map-node sink `(:h2 ,(simple-name entry)) nil))
 
   (when class
@@ -91,6 +106,8 @@ This will write the header needed so it will be index by the Help System."
 
 
 (defun write-html-header (name)
+  "Writes the default header for all files.  It will write to the default sax stream.
+This will create the :head and :script element."
   (cxml:with-element "head"
     (cxml:with-element "title" (cxml:text name))
     (cxml:with-element "link"
@@ -105,19 +122,6 @@ This will write the header needed so it will be index by the Help System."
       (cxml:attribute "type" "text/javascript")
       (cxml:attribute "src" "MathJax.js?config=TeX-MML-AM_HTMLorMML"))))
 
-
-#+nil (defun write-lines-to-file (base-name extension lines)
-  "Writes the content of LINES, which should be a list of strings, to a file.
-The name of the file is given by BASE-NAME, but the extension is replaced by EXTENSION.
-If the file already exists, it is replaced."
-  (let ((name (merge-pathnames (make-pathname :type extension) base-name)))
-    (with-open-file (out name
-			 :direction :output
-			 :if-exists :overwrite
-			 :if-does-not-exist :create)
-      (loop :for line :in lines :do
-	 (write-string line out)))
-    name))
 
 
 (defun html-for-chapter (org chapter base-dir &key (active-words))
@@ -164,6 +168,7 @@ If the file already exists, it is replaced."
     result))
 
 (defun write-html-index (org base-dir)
+  "Write the index.html file based upon the entries in `org' to `base-dir'."
   (with-open-file (out (html-file-name base-dir "index")
 		       :direction :output
 		       :if-exists :supersede
@@ -196,6 +201,8 @@ If the file already exists, it is replaced."
     (merge-pathnames source-name-type (merge-pathnames (make-pathname :directory (cons :relative new-dirs)) target))))
 
 (defun copy-directory-recursively (source-dir target-dir)
+  "Utility function which copies files recursively from `source-dir' to `target-dir'.
+Missing directories are created."
   (cl-fad:walk-directory source-dir 
 			 (lambda (fn)
 			   (when (pathname-name fn)
@@ -205,6 +212,9 @@ If the file already exists, it is replaced."
 			 :directories :breadth-first))
 
 (defun write-additional-files (directory)
+  "Write supporting files for the documentation to `directory'.
+The supporting files are CSS files, and supporting javascript files."
+  (ensure-directories-exist directory)
   (cl-fad:copy-file (project-path "doc.css" :resources)
 		    (merge-pathnames "doc.css"   directory)
 		    :overwrite t)
@@ -221,51 +231,37 @@ If the file already exists, it is replaced."
 			      (merge-pathnames "jax/" directory)))
 
 (defun html-dirs-for-organized (org directory)
+  "Given a map of class-description objects in `org', write
+the complete html structure in target directory `directory'.
+This will write the index file, copy the mathjax javascript, write
+all the individual html files for the entries in `org' etc."
   (write-additional-files directory)
   (write-html-index org directory)
   (fset:do-map (key value org)
     (declare (ignore value))
     (html-for-chapter org key directory :active-words org)))
 
-(defun html-for-organized (org &optional (stream *standard-output*))
-  (fset:do-map (key value org)
-    (lml2:html-print `(:h1 ,key) stream)
-    (loop :for entry :in value :do
-       (html-for-entry entry :stream stream))))
-
-
-(defun html-for-organized-file (org file-name)
-  (with-open-file (s file-name :direction :output :if-exists :supersede)
-    (html-for-organized org s)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
 (defstruct class-description 
+  "Cotnains a group of robodoc entries, separated by the type of entry."
   class-name
   class-entry
   method-entries
   property-entries
   function-entries)
 
-(defun bag-classes (list)
-  (let ((result (fset:map)))
-    (loop :for entry :in list :do
-       (when-let (class (car (is-part-of-class entry)))
-	 (let ((cd (or (fset:lookup result (name-of-class entry))
-			  (make-class-description :class-name (name-of-class entry)))))
-	   (case class
-	     (#\c (setf (class-description-class-entry cd) entry))
-	     (#\m (push entry (class-description-method-entries cd)))
-	     (#\p (push entry (class-description-property-entries cd)))
-	     (#\f (push entry (class-description-function-entries cd))))
-	   (setf result (fset:with result (name-of-class entry) cd)))))
-    result))
 
-(defun bag-classes-and-functions (list)
+(defun bag-classes-and-functions (robodoc-entries)
+  "Takes a list of parsed `robodoc-entries' and 
+organizes them class-description entries.  
+The class-description entries created are returned as a map, keyed
+on the class-name."
   (let ((result (fset:map)))
-    (loop :for entry :in list :do
+    (loop :for entry :in robodoc-entries :do
        (when-let (class (car (classification entry)))
 	 (let ((cd (or (fset:lookup result (name-of-group entry))
 			  (make-class-description :class-name (name-of-group entry)))))
@@ -278,13 +274,16 @@ If the file already exists, it is replaced."
     result))
 
 
-(defun source-dir-to-html-classes (&key 
-				     (sources "d:/Sources/StorageMagic/Source/CppSource/")
-				     (html "d:/Weeks/52/html/"))
+(defun source-dir-to-html-classes (&key sources-dir target-dir)
   (html-dirs-for-organized 
    (bag-classes-and-functions
-    (read-directory-and-collect-robodoc-entries sources))
-   html))
+    (read-directory-and-collect-robodoc-entries sources-dir))
+   target-dir))
 
 
 
+(defun main (argv)
+  (format t "Arguments are: ~S~%" argv)
+  (format t "Project Path: ~A~%" (project-path "doc.css" :resources))
+  (source-dir-to-html-classes :sources-dir (second argv) 
+			      :target-dir (third argv)))

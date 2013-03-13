@@ -97,7 +97,12 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defclass no-start-end-handler (cxml:broadcast-handler)
-  ())
+  ()
+  (:documentation "Handler which passes an sax stream through unmodified, except
+that the start and end document events are supressed.  
+This is usefull to include one sax stream into another. 
+The stream being included should not have the start and end document. 
+If they do, the end-document of the included stream will end the complete document."))
 
 (defmethod sax:start-document ((handler no-start-end-handler))
   nil)
@@ -133,7 +138,21 @@ output sax stream hander."
 (defclass linkify-handler (cxml:broadcast-handler)
   ((words :initform (fset:set) :initarg :words :accessor words)
    (exclude-words :initform (fset:set) :initarg :exclude-words :accessor exclude-words)
-   (link-ref-stack :initform (list "href") :accessor link-ref-stack)))
+   (link-ref-stack :initform (list "href") :accessor link-ref-stack))
+  (:documentation "Sax handler which insert links into a sax stream.
+It will scan the sax:characters stream for occurances of words listed in the words slot.
+If a word is found, an <a> element is inserted.  The <a> element will have normally
+a 'href' attribute with value 'word.hmtl'.  
+
+It will use attribute 'xlink:href' if the characters occur inside an svg element.
+
+Note that if the word is also found in the exclude-word slot it will NOT be linkified.
+
+TO IMPROVE:  
+- It now also removes #XC characters, this should be done in a whitspace cleaner
+- If the sax:characters call is broken up and a word spans two invocations of sax:charaters, 
+  this word is not recognized.
+- It should allow more flexibility in creating the target, instead of appending the .html suffix."))
 
 
 (defmethod sax:start-element ((handler linkify-handler) namespace-uri local-name qname attributes)
