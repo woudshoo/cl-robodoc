@@ -1,7 +1,10 @@
 ;;;; package.lisp
 
 (defpackage #:cl-robodoc
-  (:use #:cl #:meta-sexp #:alexandria #:split-sequence)
+  (:use #:cl
+	#:alexandria
+	#:split-sequence
+	)
   (:export
    :read-directory-and-collect-robodoc-entries
    :read-file-and-split-to-robodoc

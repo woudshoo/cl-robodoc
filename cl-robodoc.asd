@@ -2,13 +2,10 @@
 
 (asdf:defsystem #:cl-robodoc
   :serial t
-  :depends-on (:meta-sexp
-	       :alexandria
+  :depends-on (:alexandria
 	       :split-sequence
 	       :fset
-	       :cl-who
 	       :cl-fad
-	       :lml2
 	       :cxml
 	       :cl-ppcre
 	       :flexi-streams
@@ -21,10 +18,5 @@
 	       (:file "beautify-section")
 	       (:file "parse-source-2")
 	       (:file "sax-handlers")
-	       (:file "xml-source")
-#|	       (:file "parse-source")
-	       (:file "transform")
-               (:file "cl-robodoc")
-|#
-))
+	       (:file "xml-source")))
 
