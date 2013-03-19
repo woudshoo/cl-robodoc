@@ -16,6 +16,7 @@
 	       (:file "split-text-comment")
 	       (:file "split-robodoc-sections")
 	       (:file "beautify-section")
+	       (:file "file-utils")
 	       (:file "parse-source-2")
 	       (:file "sax-handlers")
 	       (:file "xml-source")))

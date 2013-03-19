@@ -72,12 +72,6 @@ See documentation on `beautify-section' how the entry is actually formatted."
     (sax:end-element sink nil nil "div")))
 
 
-
-(defun html-file-name (dir name)
-  "Returns a pathname representing a file with name NAME in directory DIR with type HTML."
-  (merge-pathnames (make-pathname :name name :type "html") dir))
-
-
 (defun write-html-header-for-help (name &key (is-parent nil))
   "Part of an attempt to write Visual Studio Help files.
 This will write the header needed so it will be index by the Help System."
@@ -189,27 +183,6 @@ This will create the :head and :script element."
 		   (cxml:text key))))))))))
 	
 
-
-(defun map-name (name source target)
-  (let* ((source-name (merge-pathnames name source))
-	 (source-name-type (make-pathname :name (pathname-name source-name)
-					  :type (pathname-type source-name)))
-	 (source-name-dirs (pathname-directory source-name))
-	 (source-dirs (pathname-directory source))
-	 (start-point (search source-dirs source-name-dirs :test #'equalp :from-end t))
-	 (new-dirs (subseq source-name-dirs (+ start-point (length source-dirs)))))
-    (merge-pathnames source-name-type (merge-pathnames (make-pathname :directory (cons :relative new-dirs)) target))))
-
-(defun copy-directory-recursively (source-dir target-dir)
-  "Utility function which copies files recursively from `source-dir' to `target-dir'.
-Missing directories are created."
-  (cl-fad:walk-directory source-dir 
-			 (lambda (fn)
-			   (when (pathname-name fn)
-			     (let ((target-name (map-name fn source-dir target-dir)))
-			       (ensure-directories-exist target-name)
-			       (cl-fad:copy-file fn target-name :overwrite t))))
-			 :directories :breadth-first))
 
 (defun write-additional-files (directory)
   "Write supporting files for the documentation to `directory'.
