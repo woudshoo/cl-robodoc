@@ -20,7 +20,7 @@
   `(("uml" :includer include-xml-file 
 	   :converter ,(lambda (in-name out-name)
 			       (sb-ext:run-program 
-				*java-cmd*o `("-Djava.awt.headless=true" "-jar" ,*uml-jar* "-tsvg" ,in-name))
+				*java-cmd* `("-Djava.awt.headless=true" "-jar" ,*uml-jar* "-tsvg" ,in-name))
 			       out-name))
     ("gnuplot" :includer include-xml-file 
 	       :converter ,(lambda (in-name out-name)
