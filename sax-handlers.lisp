@@ -11,16 +11,20 @@
 (defparameter *uml-jar* #-darwin "d:/Tools/bin/plantuml.jar"
 	      #+darwin "/Users/woudshoo/bin/plantuml.jar")
 
+(defparameter *gnuplot-cmd* #-darwin "c:/Program Files (x86)/gnuplot/bin/gnuplot.exe"
+	      #+darwin "gnuplot")
+(defparameter *java-cmd* #-darwin "c:/Windows/system32/java.exe" 
+	      #+darwin "java")
 
 (defparameter *transcribe-handlers* 
   `(("uml" :includer include-xml-file 
 	   :converter ,(lambda (in-name out-name)
-			       (external-program:run 
-				"java" `("-Djava.awt.headless=true" "-jar" ,*uml-jar* "-tsvg" ,in-name))
+			       (sb-ext:run-program 
+				*java-cmd*o `("-Djava.awt.headless=true" "-jar" ,*uml-jar* "-tsvg" ,in-name))
 			       out-name))
     ("gnuplot" :includer include-xml-file 
 	       :converter ,(lambda (in-name out-name)
-				   (external-program:run "gnuplot" 
+				   (sb-ext:run-program *gnuplot-cmd* 
 				    `("-e" "set terminal svg" 
 					   "-e" ,(format nil "set output '~A'" out-name)
 					   ,in-name))
