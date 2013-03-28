@@ -201,14 +201,16 @@ The supporting files are CSS files, and supporting javascript files."
   (copy-directory-recursively (project-path "config/" :resources)
 			      (merge-pathnames "config/" directory))
   (copy-directory-recursively (project-path "jax/" :resources)
-			      (merge-pathnames "jax/" directory)))
+			      (merge-pathnames "jax/" directory))
+  (copy-directory-recursively (project-path "fonts/" :resources)
+			      (merge-pathnames "fonts/" directory)))
 
-(defun html-dirs-for-organized (org directory)
+(defun html-dirs-for-organized (org directory &optional &key (copy-support-files t))
   "Given a map of class-description objects in `org', write
 the complete html structure in target directory `directory'.
 This will write the index file, copy the mathjax javascript, write
 all the individual html files for the entries in `org' etc."
-  (write-additional-files directory)
+  (when copy-support-files (write-additional-files directory))
   (write-html-index org directory)
   (fset:do-map (key value org)
     (declare (ignore value))
@@ -247,16 +249,19 @@ on the class-name."
     result))
 
 
-(defun source-dir-to-html-classes (&key sources-dir target-dir)
+(defun source-dir-to-html-classes (sources-dir target-dir 
+				   &optional &key (copy-support-files t))
+  "Convert the source code for files found in sources-dir to html
+which will be exported to target-dir."
   (html-dirs-for-organized 
    (bag-classes-and-functions
     (read-directory-and-collect-robodoc-entries sources-dir))
-   target-dir))
+   target-dir :copy-support-files copy-support-files))
 
 
 
 (defun main (argv)
   (format t "Arguments are: ~S~%" argv)
   (format t "Project Path: ~A~%" (project-path "doc.css" :resources))
-  (source-dir-to-html-classes :sources-dir (second argv) 
-			      :target-dir (third argv)))
+  (source-dir-to-html-classes  (second argv) 
+			       (third argv)))

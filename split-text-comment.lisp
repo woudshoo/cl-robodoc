@@ -1,10 +1,29 @@
 (in-package :cl-robodoc)
 
+;;; Code to split a C like code stream into Comments and Text.
+
+
 (defclass section-splitter ()
   ((in-stream :initarg :in-stream :reader in-stream)
-   (state :accessor state :initform :text :documentation "value is :comment, :text of :eof")))
+   (state :accessor state :initform :text :documentation "value is :comment, :text of :eof"))
+  (:documentation "Class that will split the stream `in-stream' representing a mix of source and 
+commentes into sections.
+A section is either a :text or a :comment section, with :text section representing code, and
+:comment section containing the comments.
+
+Sections are presented as cons cells with the first element the type and the second element the content.
+
+e.g.:  
+\"Hallo/* Daar */\"
+
+Will be split  into: (:text . \"Hallo\")  (:comment \" Daar \")
+
+Note that this class will only recogize /* */ c-style comments, //
+comments are considered text.
+"))
 
 (defmethod next ((splitter section-splitter))
+  "Returns the next section of the stream being split by `splitter'."
   (read-next splitter (state splitter)))
 
 
@@ -68,6 +87,7 @@
 ;;;;;;;;
 
 (defmethod next-comment-block ((splitter section-splitter))
+  "Like next, but it will skip the text blocks."
   (loop :for block = (next splitter)
      :until (or (not block) 
 		(eql (car block) :comment))

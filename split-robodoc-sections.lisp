@@ -42,27 +42,6 @@
   "Entry is a class entry"
   (member #\c (classification entry)))
 
-(defun is-method (entry)
-  "If the entry indicates a method"
-  (member #\m (classification entry)))
-
-(defun is-property (entry)
-  "If the entry indicates a method"
-)
-
-
-#+nil (defun is-part-of-class (entry)
-  "Returns if the robodoc entry is either a class or a method. (or later maybe a property etc.)"
-  (intersection (classification entry) '(#\c #\m #\p)))
-
-#+nil (defun name-of-class (entry)
-  "Returns a string indicating the class name if it is a class."
-  (when (is-part-of-class entry)
-    (cond 
-      ((is-class entry) (lastcar (names entry)))
-      ((or (is-method entry) (is-property entry)) (first (names entry)))
-      (t (error "Cannot determine class name")))))
-
 (defun name-of-group (entry)
   "Name of a group.  Typically a class name"
   (cond
