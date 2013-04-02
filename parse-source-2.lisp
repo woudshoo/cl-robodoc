@@ -201,7 +201,9 @@ The supporting files are CSS files, and supporting javascript files."
   (copy-directory-recursively (project-path "config/" :resources)
 			      (merge-pathnames "config/" directory))
   (copy-directory-recursively (project-path "jax/" :resources)
-			      (merge-pathnames "jax/" directory)))
+			      (merge-pathnames "jax/" directory))
+  (copy-directory-recursively (project-path "fonts/" :resources)
+			      (merge-pathnames "fonts/" directory)))
 
 (defun html-dirs-for-organized (org directory)
   "Given a map of class-description objects in `org', write

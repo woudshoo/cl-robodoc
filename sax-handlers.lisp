@@ -8,13 +8,18 @@
 ;;; but that seems not to work with sbcl on windows.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defparameter *uml-jar* #-darwin "d:/Tools/bin/plantuml.jar"
-	      #+darwin "/Users/woudshoo/bin/plantuml.jar")
+(defparameter *uml-jar*  "/home/wim/plantuml.jar")
 
-(defparameter *gnuplot-cmd* #-darwin "c:/Program Files (x86)/gnuplot/bin/gnuplot.exe"
-	      #+darwin "gnuplot")
-(defparameter *java-cmd* #-darwin "c:/Windows/system32/java.exe" 
-	      #+darwin "java")
+(defparameter *gnuplot-cmd*  "/usr/bin/gnuplot")
+
+(defparameter *java-cmd*  "/usr/bin/java")
+
+(defun write-gnuplot-file (out-file)
+  (let ((file-name "/tmp/gpcommand"))
+    (with-open-file (s file-name :direction :output :if-exists :supersede)
+		    (format s "set terminal svg~%")
+		    (format s "set output '~A'~%" out-file))
+    file-name))
 
 (defparameter *transcribe-handlers* 
   `(("uml" :includer include-xml-file 
@@ -24,10 +29,9 @@
 			       out-name))
     ("gnuplot" :includer include-xml-file 
 	       :converter ,(lambda (in-name out-name)
-				   (sb-ext:run-program *gnuplot-cmd* 
-				    `("-e" "set terminal svg" 
-					   "-e" ,(format nil "set output '~A'" out-name)
-					   ,in-name))
+			     (sb-ext:run-program *gnuplot-cmd* 
+						 `(,(write-gnuplot-file out-name) 
+						   ,in-name))
 				   out-name))))
 
 (defclass uml-transcribe-handler (cxml:broadcast-handler)
@@ -37,8 +41,7 @@
 (defmethod pick-random-name ((handler uml-transcribe-handler))
   (setf (collect-file-name handler)
 	(parse-namestring (format nil 
-				  #+darwin "/tmp/~A"
-				  #-darwin "d:/tmp/~A" (random (expt 10 10))))))
+				  "/tmp/~A" (random (expt 10 10))))))
 
 (defmethod uml-file-name ((handler uml-transcribe-handler))
   (merge-pathnames (make-pathname :type "uml") 
@@ -77,8 +80,8 @@
 				   (namestring (uml-file-name handler))
 				   (namestring (svg-file-name handler))))
 
-	(delete-file (uml-file-name handler))
-	(delete-file (svg-file-name handler)))
+#+nil	(delete-file (uml-file-name handler))
+#+nil	(delete-file (svg-file-name handler)))
       (call-next-method)))
 
 
