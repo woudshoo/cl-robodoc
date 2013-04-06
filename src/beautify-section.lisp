@@ -261,7 +261,9 @@ Currently I think this is wrong.  However we need to see how to fix this later."
 
 
 (defmethod beautify ((text string) (type (eql :text)))
-  (list (list :pre text)))
+  (list 
+   (list :pre
+	 (list :ccode text))))
 
 (defun beautify-section (section)
   "Returns a 'beautified' version.  The input is a string, the result is a 'lml' formatted output."

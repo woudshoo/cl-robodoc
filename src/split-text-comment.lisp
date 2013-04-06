@@ -2,7 +2,6 @@
 
 ;;; Code to split a C like code stream into Comments and Text.
 
-
 (defclass section-splitter ()
   ((in-stream :initarg :in-stream :reader in-stream)
    (state :accessor state :initform :text :documentation "value is :comment, :text of :eof"))
@@ -80,8 +79,6 @@ comments are considered text.
 
 (defmethod read-next ((splitter section-splitter) (state (eql :eof)))
   nil)
-
-
 
 
 ;;;;;;;;

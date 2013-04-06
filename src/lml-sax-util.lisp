@@ -25,6 +25,9 @@
     (symbol (string-downcase (symbol-name name)))))
 
 (defun map-node (handler node &optional (start-node t))
+  "Generates SAX events on the sax handler `handler' based upon a LML2 kind of `node'.
+If `start-node' is t it will generate start-document and end-document
+events, if nil it will ommit them."
   (when start-node 
     (sax:start-document handler))
   (typecase node
@@ -36,7 +39,7 @@
        (map-node handler child nil))
      (sax:end-element handler nil nil (tag-name (type-of-fragment node))))
     (string (sax:characters handler node)))
-    (when start-node 
-      (sax:end-document handler)))
+  (when start-node 
+    (sax:end-document handler)))
 
 		     

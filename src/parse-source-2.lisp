@@ -72,32 +72,6 @@ See documentation on `beautify-section' how the entry is actually formatted."
     (sax:end-element sink nil nil "div")))
 
 
-(defun write-html-header-for-help (name &key (is-parent nil))
-  "Part of an attempt to write Visual Studio Help files.
-This will write the header needed so it will be index by the Help System."
-  (flet ((element (key value)
-	   (cxml:with-element "meta"
-	     (cxml:attribute "name" key)
-	     (cxml:attribute "content" value))))
-    (cxml:with-element "head"
-      (cxml:with-element "title" (cxml:text name))
-      (element "Microsoft.Help.Id" (if is-parent "StorageMagicApp-1"
-					      (format nil "StorageMagicApp-1-~A" name)))
-      (element "Microsoft.Help.Locale" "en-us")
-      (element "Microsoft.Help.TopicLocale" "en-us")
-      (element "Microsoft.Help.TopicVersion" "10")
-      (element "Microsoft.Help.SelfBranded" "false")
-      (element "Microsoft.Help.TocParent" (if is-parent "-1" "StorageMagicApp-1"))
-      (element "Microsoft.Help.TocOrder" "0")
-      (element "Microsoft.Help.Keywords" (format nil "StorageMagic ~A" name))
-      (element "Microsoft.Help.F1" name)
-      (element "Description" (format nil "Description of ~A" name))
-      (cxml:with-element "link"
-	(cxml:attribute "href" "doc.css")
-	(cxml:attribute "rel" "stylesheet")
-	(cxml:attribute "type" "text/css")))))
-
-
 
 (defun write-html-header (name)
   "Writes the default header for all files.  It will write to the default sax stream.

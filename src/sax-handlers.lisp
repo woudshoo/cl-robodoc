@@ -24,7 +24,12 @@
 				    `("-e" "set terminal svg" 
 					   "-e" ,(format nil "set output '~A'" out-name)
 					   ,in-name))
-				   out-name))))
+				   out-name))
+    ("ccode" :includer include-xml-file 
+	     :converter ,(lambda (in-name out-name)
+				 (with-open-file (s out-name :direction :output)
+				   (colorize:colorize-file-to-stream :c++ in-name s :wrap nil))
+				 out-name))))
 
 (defclass uml-transcribe-handler (cxml:broadcast-handler)
   ((collect-file-name :initform nil :accessor collect-file-name)
