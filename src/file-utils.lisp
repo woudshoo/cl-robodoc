@@ -1,5 +1,27 @@
 (in-package #:cl-robodoc)
 
+(defun parse-namestring-as-directory (string)
+  "Returns a pathname assuming the string indentifies a directory.
+This is basically the same as calling `pathname', 
+however it will do some magic if the argument is something like:
+
+   \"/tmp/A\"
+or 
+   \"/tmp/A.b\"
+
+Because the default implementation assumes that A or A.b are a file name or
+a file and type."
+  (let* ((namestring (pathname string))
+	 (name (pathname-name namestring))
+	 (type (pathname-type namestring)))
+    (if (or name type)
+	(merge-pathnames
+	 (make-pathname :directory `(:relative ,(format nil "~{~A~}~{.~A~}" 
+							(ensure-list name)
+							(ensure-list type))))
+	 (make-pathname :name nil :type nil :defaults namestring ))
+	namestring)))
+
 (defun html-file-name (dir name)
   "Returns a pathname representing a file with name NAME in directory DIR with type HTML."
   (merge-pathnames (make-pathname :name name :type "html") dir))

@@ -30,17 +30,20 @@ See documentation of ROBODOC-SPLITTER for the resulting output."
 								     :in-stream s ))))
       (loop :for block = (next splitter) :while block :collect block))))
 
-(defun read-directory-and-collect-robodoc-entries (directory)
-  "Reads all H and CPP file in the DIRECTORY and collected the ROBODOC-SPLITTER sections."
+(defun read-directory-and-collect-robodoc-entries (directory &key (types '("H" "CPP")))
+  "Reads all H and CPP file in the DIRECTORY and collected the ROBODOC-SPLITTER sections.
+If DIRECTORY is a list, it will scan all the directories in the list."
   (let ((result (list)))
-    (cl-fad:walk-directory directory 
-			   (lambda (file)
-			     (setf result 
-				   (concatenate 'list result 
-						(read-file-and-split-to-robodoc file))))
-			   :directories nil
-			   :test (lambda (name)
-				   (member (pathname-type name) '("H" "CPP") :test #'string-equal)))
+    (loop :for dir :in (alexandria:ensure-list directory)
+       :do
+       (cl-fad:walk-directory (parse-namestring-as-directory dir)
+			      (lambda (file)
+				(setf result 
+				      (concatenate 'list result 
+						   (read-file-and-split-to-robodoc file))))
+			      :directories nil
+			      :test (lambda (name)
+				      (member (pathname-type name) types :test #'string-equal))))
     result))
 
 
@@ -161,23 +164,24 @@ This will create the :head and :script element."
 (defun write-additional-files (directory)
   "Write supporting files for the documentation to `directory'.
 The supporting files are CSS files, and supporting javascript files."
-  (ensure-directories-exist directory)
-  (cl-fad:copy-file (project-path "doc.css" :resources)
-		    (merge-pathnames "doc.css"   directory)
-		    :overwrite t)
-  (cl-fad:copy-file (project-path "MathJax.js" :resources) 
-		    (merge-pathnames "MathJax.js" directory)
-		    :overwrite t)
-  (copy-directory-recursively (project-path "extensions/" :resources)
-			      (merge-pathnames "extensions/" directory))
-  (copy-directory-recursively (project-path "images/" :resources)
-			      (merge-pathnames "images/" directory))
-  (copy-directory-recursively (project-path "config/" :resources)
-			      (merge-pathnames "config/" directory))
-  (copy-directory-recursively (project-path "jax/" :resources)
-			      (merge-pathnames "jax/" directory))
-  (copy-directory-recursively (project-path "fonts/" :resources)
-			      (merge-pathnames "fonts/" directory)))
+  (let ((dir (parse-namestring-as-directory directory)))
+    (ensure-directories-exist dir)
+    (cl-fad:copy-file (project-path "doc.css" :resources)
+		      (merge-pathnames "doc.css"   dir)
+		      :overwrite t)
+    (cl-fad:copy-file (project-path "MathJax.js" :resources) 
+		      (merge-pathnames "MathJax.js" dir)
+		      :overwrite t)
+    (copy-directory-recursively (project-path "extensions/" :resources)
+				(merge-pathnames "extensions/" dir))
+    (copy-directory-recursively (project-path "images/" :resources)
+				(merge-pathnames "images/" dir))
+    (copy-directory-recursively (project-path "config/" :resources)
+				(merge-pathnames "config/" dir))
+    (copy-directory-recursively (project-path "jax/" :resources)
+				(merge-pathnames "jax/" dir))
+    (copy-directory-recursively (project-path "fonts/" :resources)
+				(merge-pathnames "fonts/" dir))))
 
 (defun html-dirs-for-organized (org directory &optional &key (copy-support-files t))
   "Given a map of class-description objects in `org', write
@@ -224,12 +228,14 @@ on the class-name."
 
 
 (defun source-dir-to-html-classes (sources-dir target-dir 
-				   &optional &key (copy-support-files t))
+				   &optional &key 
+					       (copy-support-files t)
+					       (types '("H" "CPP")))
   "Convert the source code for files found in sources-dir to html
 which will be exported to target-dir."
   (html-dirs-for-organized 
    (bag-classes-and-functions
-    (read-directory-and-collect-robodoc-entries sources-dir))
+    (read-directory-and-collect-robodoc-entries sources-dir :types types))
    target-dir :copy-support-files copy-support-files))
 
 
