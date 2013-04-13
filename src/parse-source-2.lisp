@@ -27,6 +27,15 @@
 (defun initialize-resources ()
   (setf *resources* (read-directory-as-tar-vector (project-path "" :resources))))
 
+(defun read-file-and-split-to-robodoc (file-name)
+  "Reads the FILE-NAME and parses the content into robodoc sections.  
+See documentation of ROBODOC-SPLITTER for the resulting output."
+  (with-open-file (s file-name :external-format :utf-8)
+    (let ((splitter (make-instance 'robodoc-splitter
+				   :section-splitter (make-instance 'section-splitter
+								    :in-stream s ))))
+      (loop :for block = (next splitter) :while block :collect block))))
+
 (defun read-directory-and-collect-robodoc-entries (directory &key (types '("H" "CPP")))
   "Reads all H and CPP file in the DIRECTORY and collected the ROBODOC-SPLITTER sections.
 If DIRECTORY is a list, it will scan all the directories in the list."
