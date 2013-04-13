@@ -24,7 +24,8 @@ a file and type."
 
 (defun html-file-name (dir name)
   "Returns a pathname representing a file with name NAME in directory DIR with type HTML."
-  (merge-pathnames (make-pathname :name name :type "html") dir))
+  (merge-pathnames (make-pathname :name name :type "html") 
+		   (parse-namestring-as-directory dir)))
 
 
 (defun map-name (name source target)
@@ -52,3 +53,30 @@ Missing directories are created."
 			       (ensure-directories-exist target-name)
 			       (cl-fad:copy-file fn target-name :overwrite t))))
 			 :directories :breadth-first))
+
+
+
+(defun read-directory-as-tar-vector (directory)
+  "Returns a array "
+  (external-program:run "tar" `("-cf" "/tmp/ta1.tar" "-C" ,directory "."))
+  (with-open-file (stream "/tmp/ta1.tar" :element-type '(unsigned-byte 8))
+    (let ((tar-sequence (make-array (file-length stream) :element-type '(unsigned-byte 8))))
+      (read-sequence tar-sequence stream)
+      tar-sequence)))
+
+(defun extract-resources (source-tar source-directory target-directory)
+  "Populates the `target-directory' with either the `source-tar' content
+  or the `source-directory' content.
+
+If specified, the `source-tar' should be a sequence containing the content of a tar file.
+The content of the tar sequence will be extracted at the target directory.
+
+If `source-tar' is nil the code will recursively copy the content of `source-directory' to 
+the `target-directory'.
+
+Use cases for this function are deployment of lisp executables.  It can read in the content 
+of support files in a vector which will be saved in the image.  The run time code can 
+than extract it when needed."
+  (if source-tar
+      (wo-minitar:unpack-tar-sequence source-tar :directory target-directory)
+      (copy-directory-recursively source-directory target-directory)))

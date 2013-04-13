@@ -17,7 +17,8 @@
 	       :flexi-streams
 	       :trivial-project-pathname
 	       :colorize
-	       :external-program)
+	       :external-program
+	       :wo-minitar)
   :components ((:file "package")
 	       (:file "split-text-comment")
 	       (:file "split-robodoc-sections")

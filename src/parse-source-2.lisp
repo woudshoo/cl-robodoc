@@ -17,18 +17,15 @@
 ;;;   transform transform the result to valid html/xml.
 ;;;   
 ;;;
+
+
 (project-pathname:define project-path (:asdf "cl-robodoc")
   (:resources "resources/"))
 
+(defparameter *resources* nil)
 
-(defun read-file-and-split-to-robodoc (file-name)
-  "Reads the FILE-NAME and parses the content into robodoc sections.  
-See documentation of ROBODOC-SPLITTER for the resulting output."
-  (with-open-file (s file-name :external-format :utf-8)
-    (let ((splitter (make-instance 'robodoc-splitter
-				    :section-splitter (make-instance 'section-splitter
-								     :in-stream s ))))
-      (loop :for block = (next splitter) :while block :collect block))))
+(defun initialize-resources ()
+  (setf *resources* (read-directory-as-tar-vector (project-path "" :resources))))
 
 (defun read-directory-and-collect-robodoc-entries (directory &key (types '("H" "CPP")))
   "Reads all H and CPP file in the DIRECTORY and collected the ROBODOC-SPLITTER sections.
@@ -161,27 +158,18 @@ This will create the :head and :script element."
 	
 
 
+;; (defun read-in-resources (directory)
+;;   (external-program:run "tar" `("-cf" "/tmp/ta1.tar" "-C" ,directory "."))
+;;   (with-open-file (stream "/tmp/ta1.tar" :element-type '(unsigned-byte 8))
+;;     (setf *resources* (make-array (file-length stream)))
+;;     (read-sequence *resources* stream)))
+
 (defun write-additional-files (directory)
   "Write supporting files for the documentation to `directory'.
 The supporting files are CSS files, and supporting javascript files."
   (let ((dir (parse-namestring-as-directory directory)))
     (ensure-directories-exist dir)
-    (cl-fad:copy-file (project-path "doc.css" :resources)
-		      (merge-pathnames "doc.css"   dir)
-		      :overwrite t)
-    (cl-fad:copy-file (project-path "MathJax.js" :resources) 
-		      (merge-pathnames "MathJax.js" dir)
-		      :overwrite t)
-    (copy-directory-recursively (project-path "extensions/" :resources)
-				(merge-pathnames "extensions/" dir))
-    (copy-directory-recursively (project-path "images/" :resources)
-				(merge-pathnames "images/" dir))
-    (copy-directory-recursively (project-path "config/" :resources)
-				(merge-pathnames "config/" dir))
-    (copy-directory-recursively (project-path "jax/" :resources)
-				(merge-pathnames "jax/" dir))
-    (copy-directory-recursively (project-path "fonts/" :resources)
-				(merge-pathnames "fonts/" dir))))
+    (extract-resources *resources* (project-path "" :resources) dir)))
 
 (defun html-dirs-for-organized (org directory &optional &key (copy-support-files t))
   "Given a map of class-description objects in `org', write
@@ -242,6 +230,7 @@ which will be exported to target-dir."
 
 (defun main (argv)
   (format t "Arguments are: ~S~%" argv)
-  (format t "Project Path: ~A~%" (project-path "doc.css" :resources))
+  (format t "Total Size of Resources: ~A~%" 
+	  (if *resources* (length *resources*) "Not Loaded"))
   (source-dir-to-html-classes  (second argv) 
 			       (third argv)))
