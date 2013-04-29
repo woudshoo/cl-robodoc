@@ -18,7 +18,7 @@
 	       :trivial-project-pathname
 	       :colorize
 	       :external-program
-	       :wo-minitar)
+	       :miniuntar)
   :components ((:file "package")
 	       (:file "split-text-comment")
 	       (:file "split-robodoc-sections")

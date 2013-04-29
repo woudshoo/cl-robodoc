@@ -16,7 +16,6 @@
 ;;;   put into a sax-handler.  Certain sax-handlers will take custom tags, such as :uml or :plot and
 ;;;   transform transform the result to valid html/xml.
 ;;;   
-;;;
 
 
 (project-pathname:define project-path (:asdf "cl-robodoc")

@@ -78,5 +78,5 @@ Use cases for this function are deployment of lisp executables.  It can read in 
 of support files in a vector which will be saved in the image.  The run time code can 
 than extract it when needed."
   (if source-tar
-      (wo-minitar:unpack-tar-sequence source-tar :directory target-directory)
+      (miniuntar:unpack-tar-sequence source-tar :directory target-directory)
       (copy-directory-recursively source-directory target-directory)))
