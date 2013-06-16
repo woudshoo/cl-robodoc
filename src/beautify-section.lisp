@@ -99,7 +99,16 @@ A block consists of the following information:
 
 	     (line-indicates-ordered-li (line) 
 	       (and (> (length line) 3)
-		    (cl-ppcre:scan "^[0-9]+\\. " line)))
+		    (or (cl-ppcre:scan "^[0-9]+\\. " line)
+			(cl-ppcre:scan "^[0-9]+ - " line))))
+
+	     (determine-next-li-indent (line)
+	       (if-let (position (search " -- " line))
+		 (+ 4 position)
+		 (or (multiple-value-bind (start end)
+			 (cl-ppcre:scan "^[0-9]+(\\. )|( - )" line)
+		       (declare (ignore start)) end)
+		     2)))
 
 	     (type-for-new-block (line)
 	       (cond
@@ -129,12 +138,6 @@ A block consists of the following information:
 		 ((eql (simple-type-for-line line) :br) t)
 		 (t nil)))
 
-	     (determine-next-li-indent (line)
-	       (if-let (position (search " -- " line))
-		 (+ 4 position)
-		 (if (line-indicates-ordered-li line)
-		     3
-		     2)))
 
 	     (starts-new-block-p (line)
 	       (cond 
