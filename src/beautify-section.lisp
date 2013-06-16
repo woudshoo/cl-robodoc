@@ -96,15 +96,18 @@ A block consists of the following information:
 	       (and (> (length line) 3)
 		       (member (char line 0) '(#\- #\o #\*))
 		       (eql (char line 1) #\Space)))
-	     
+
+	     (line-indicates-ordered-li (line) 
+	       (and (> (length line) 3)
+		    (cl-ppcre:scan "^[0-9]+\\. " line)))
 
 	     (type-for-new-block (line)
 	       (cond
 		 ((eql (length line-indent) 2)
 		  (list :h3 :class (line-content-for-type line :h3 line-indent)))
 
-		 ((line-indicates-li line) :li)
-
+		 ((line-indicates-li line) '(:li :ul))
+		 ((line-indicates-ordered-li line) '(:li :ol))
 		 ((starts-with-subseq "#+uml" line) :uml)
 		 ((starts-with-subseq "#+plot" line) :gnuplot)
 		 ((starts-with-subseq "`" line) '(:p :class "display-math"))
@@ -129,17 +132,21 @@ A block consists of the following information:
 	     (determine-next-li-indent (line)
 	       (if-let (position (search " -- " line))
 		 (+ 4 position)
-		 2))
+		 (if (line-indicates-ordered-li line)
+		     3
+		     2)))
 
 	     (starts-new-block-p (line)
 	       (cond 
 		 ((line-indicates-li line) t)
+		 ((line-indicates-ordered-li line) t)
 		 (t nil)))
 
 	     (block-can-be-closed-p (new-type line-level block)
 	       "Determine the block can be closed depending on the new-type of block
 and the level.  
 Special cases are the 'pre' tags."
+	       (declare (ignore block))
 	       (case (simple-type new-type)
 		 (:pre nil)
 		 (t (> (current-block-level) line-level))))
@@ -152,8 +159,8 @@ Special cases are the 'pre' tags."
 	       (let ((old-type (parse-block-type (current-block))))
 		 (when  (or  
 			 ;; If a non list item is added to list environment, close the list environment
-			 (and (not (eql new-type :li)) 
-			      (eql old-type :ul))
+			 (and (not (eql (simple-type new-type) :li)) 
+			      (member old-type '(:ul :ol)))
 			 ;; If a paragraph is following a paragraph, close previous paragraph
 			 (and (eql new-type :br) (eql (simple-type old-type) :p))) 
 		   (pop blocks))))
@@ -174,24 +181,24 @@ Special cases are the 'pre' tags."
 				'(nil :p :h1 :h2 :h3 :uml :gnuplot :h4 :li :pre)))
 		   (t (zerop (length line)))))
 
-	     (get-enclosing-ul-block ()
+	     (get-enclosing-ul/ol-block ()
 	       "Returns either the current block or the parent block if it is a :ul block"
 	       (cond
 		 ((not (current-block)) nil)
-		 ((eql (parse-block-type (current-block)) :ul) (current-block))
+		 ((member (parse-block-type (current-block)) '(:ul :ol)) (current-block))
 		 ((and (parse-block-parent (current-block))
-		       (eql (parse-block-type (parse-block-parent (current-block))) :ul))
+		       (member (parse-block-type (parse-block-parent (current-block))) '(:ul :ol)))
 		  (parse-block-parent (current-block)))
 		 (t nil)))
 
 	     (add-parent-block-if-needed (type)
 	       "Method to insert implicitly requested parent blocks.
 Currently I think this is wrong.  However we need to see how to fix this later."
-	       (when (eql type :li)
-		 (let ((ul-block (get-enclosing-ul-block)))
+	       (when (eql (simple-type type) :li)
+		 (let ((ul-block (get-enclosing-ul/ol-block)))
 		   (when (or (not ul-block)
 			     (> (current-line-level) (parse-block-level ul-block)))
-		     (add-child-block :ul (list))))))
+		     (add-child-block (second type) (list))))))
 	     
 	     (add-line-to-blocks (line)
 	       (let* ((new-type (type-for-new-block line))
@@ -209,7 +216,8 @@ Currently I think this is wrong.  However we need to see how to fix this later."
 
 		 (add-parent-block-if-needed new-type)
 
-		 (when (and  (line-indicates-li line))  
+		 (when (or  (line-indicates-li line)
+			    (line-indicates-ordered-li line))  
 		   (incf (car line-indent) (determine-next-li-indent line)))   
 
 		 (cond 

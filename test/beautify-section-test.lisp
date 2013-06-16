@@ -123,6 +123,18 @@
 		    "Test nested lists work"))))
 
 
+(deftestsuite beautify-lists-2 ()
+  ((list-items-1 " * HEADER
+ *
+ *   text
+ *   1. Hallo
+ *   2. Daar
+ *   text"))
+  (:tests
+   (types-match-1
+    (test-type-tree list-items-1 '((:h3 nil) (:p nil (:ol (:li nil) (:li nil)) nil))
+		    "Simple numbered list."))))
+
 (deftestsuite p-element-1 ()
   ((p-1 " * HEADER
  * 
