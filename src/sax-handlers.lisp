@@ -9,7 +9,12 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-
+(defun write-gnuplot-file (out-file)
+  (let ((file-name "/tmp/gpcommand"))
+    (with-open-file (s file-name :direction :output :if-exists :supersede)
+		    (format s "set terminal svg~%")
+		    (format s "set output '~A'~%" out-file))
+    file-name))
 
 (defparameter *transcribe-handlers* 
   `(("uml" :includer include-xml-file 
@@ -20,14 +25,13 @@
     ("gnuplot" :includer include-xml-file 
 	       :converter ,(lambda (in-name out-name)
 				   (external-program:run *gnuplot-cmd* 
-				    `("-e" "set terminal svg" 
-					   "-e" ,(format nil "set output '~A'" out-name)
-					   ,in-name))
+							 `(,(write-gnuplot-file out-name) 
+							   ,in-name))
 				   out-name))
     ("ccode" :includer include-xml-file 
 	     :converter ,(lambda (in-name out-name)
-				 (with-open-file (s out-name :direction :output)
-				   (colorize:colorize-file-to-stream :c++ in-name s :wrap nil))
+			   (with-open-file (s out-name :direction :output)
+					   (colorize:colorize-file-to-stream :c++ in-name s :wrap nil))
 				 out-name))))
 
 (defclass uml-transcribe-handler (cxml:broadcast-handler)
@@ -37,8 +41,7 @@
 (defmethod pick-random-name ((handler uml-transcribe-handler))
   (setf (collect-file-name handler)
 	(parse-namestring (format nil 
-				  #+darwin "/tmp/~A"
-				  #-darwin "d:/tmp/~A" (random (expt 10 10))))))
+				  "/tmp/~A" (random (expt 10 10))))))
 
 (defmethod uml-file-name ((handler uml-transcribe-handler))
   (merge-pathnames (make-pathname :type "uml") 
@@ -77,8 +80,8 @@
 				   (namestring (uml-file-name handler))
 				   (namestring (svg-file-name handler))))
 
-	(delete-file (uml-file-name handler))
-	(delete-file (svg-file-name handler)))
+#+nil	(delete-file (uml-file-name handler))
+#+nil	(delete-file (svg-file-name handler)))
       (call-next-method)))
 
 

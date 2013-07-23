@@ -179,7 +179,8 @@ The supporting files are CSS files, and supporting javascript files."
     (ensure-directories-exist dir)
     (extract-resources *resources* (project-path "" :resources) dir)))
 
-(defun html-dirs-for-organized (org directory &optional &key (copy-support-files t))
+
+(defun html-dirs-for-organized (org directory &key copy-support-files)
   "Given a map of class-description objects in `org', write
 the complete html structure in target directory `directory'.
 This will write the index file, copy the mathjax javascript, write
