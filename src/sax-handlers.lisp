@@ -79,9 +79,9 @@
 			  (funcall (getf  convertor :converter) 
 				   (namestring (uml-file-name handler))
 				   (namestring (svg-file-name handler))))
-
-#+nil	(delete-file (uml-file-name handler))
-#+nil	(delete-file (svg-file-name handler)))
+	
+	(delete-file (uml-file-name handler))
+	(delete-file (svg-file-name handler)))
       (call-next-method)))
 
 
