@@ -241,5 +241,6 @@ which will be exported to target-dir."
   (format t "Arguments are: ~S~%" argv)
   (format t "Total Size of Resources: ~A~%" 
 	  (if *resources* (length *resources*) "Not Loaded"))
+  (read-config-file)
   (source-dir-to-html-classes  (second argv) 
 			       (third argv)))
