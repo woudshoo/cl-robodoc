@@ -8,19 +8,18 @@
 ;;; but that seems not to work with sbcl on windows.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defparameter *uml-jar* #-darwin "d:/Tools/bin/plantuml.jar"
-	      #+darwin "/Users/woudshoo/bin/plantuml.jar")
+
 
 
 (defparameter *transcribe-handlers* 
   `(("uml" :includer include-xml-file 
 	   :converter ,(lambda (in-name out-name)
-			       (external-program:run 
-				"java" `("-Djava.awt.headless=true" "-jar" ,*uml-jar* "-tsvg" ,in-name))
+			       (external-program:run *java-cmd*
+				`("-Djava.awt.headless=true" "-jar" ,*uml-jar* "-tsvg" ,in-name))
 			       out-name))
     ("gnuplot" :includer include-xml-file 
 	       :converter ,(lambda (in-name out-name)
-				   (external-program:run "gnuplot" 
+				   (external-program:run *gnuplot-cmd* 
 				    `("-e" "set terminal svg" 
 					   "-e" ,(format nil "set output '~A'" out-name)
 					   ,in-name))

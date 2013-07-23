@@ -9,5 +9,6 @@
    :read-file-and-split-to-robodoc
    :bag-classes
    :html-dirs-for-organized
-   :source-dir-to-html-classes))
+   :source-dir-to-html-classes
+   :read-config-file))
 

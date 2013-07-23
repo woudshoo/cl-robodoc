@@ -20,6 +20,7 @@
 	       :external-program
 	       :miniuntar)
   :components ((:file "package")
+	       (:file "config")
 	       (:file "split-text-comment")
 	       (:file "split-robodoc-sections")
 	       (:file "beautify-section")
