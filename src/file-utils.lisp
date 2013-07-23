@@ -38,6 +38,7 @@ name = /a/b/c/d/e.f, source = /a/b, target = /x/y/z  ===>  /x/y/z/c/d/e.f "
 	 (source-name-dirs (pathname-directory source-name))
 	 (source-dirs (pathname-directory source))
 	 (start-point (search source-dirs source-name-dirs :test #'equalp :from-end t))
+	 (ttt (assert start-point (source-dirs source-name-dirs) "SD: ~S SND: ~S" source-dirs source-name-dirs ))
 	 (new-dirs (subseq source-name-dirs (+ start-point (length source-dirs)))))
     (merge-pathnames source-name-type (merge-pathnames (make-pathname :directory (cons :relative new-dirs)) target))))
 
