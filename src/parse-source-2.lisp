@@ -166,12 +166,6 @@ This will create the :head and :script element."
 	
 
 
-;; (defun read-in-resources (directory)
-;;   (external-program:run "tar" `("-cf" "/tmp/ta1.tar" "-C" ,directory "."))
-;;   (with-open-file (stream "/tmp/ta1.tar" :element-type '(unsigned-byte 8))
-;;     (setf *resources* (make-array (file-length stream)))
-;;     (read-sequence *resources* stream)))
-
 (defun write-additional-files (directory)
   "Write supporting files for the documentation to `directory'.
 The supporting files are CSS files, and supporting javascript files."

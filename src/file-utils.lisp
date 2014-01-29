@@ -58,7 +58,9 @@ Missing directories are created."
 
 
 (defun read-directory-as-tar-vector (directory)
-  "Returns a array "
+  "Return an octet array containing the serialized DIRECTORY.
+The serialization format is TAR.  Which means that if this
+array is dumped in a file the standard tar utility can be used to unpack it."
   (external-program:run "tar" `("-cf" "/tmp/ta1.tar" "-C" ,directory "."))
   (with-open-file (stream "/tmp/ta1.tar" :element-type '(unsigned-byte 8))
     (let ((tar-sequence (make-array (file-length stream) :element-type '(unsigned-byte 8))))

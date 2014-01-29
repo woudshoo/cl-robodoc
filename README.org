@@ -73,3 +73,26 @@ Load the project, and use the function `source-dir-to-html-classes'
 I will update this project for my own needs.  However if there is some interest,
 I happily include patches, or put some effort in myself to make it easier to use.
 
+** Todo
+
+*** Get rid of the MathJax tree
+    
+There are a few options:
+
+- Get rid of it all together
+- Tar them up so it is just one file
+- Move them under the directory 'thirdparty'.
+
+*** Improve handling external resources
+
+See also above. At the moment there are only two types of included content
+which are currently tracked in the source tree:
+
+- MathJax
+- doc.css  
+
+
+*** Code restructuring
+
+- split up `parse-source-2' into actual parsing and writing results.
+- Split up the `sax-handlers' into separate files in a sub-directory.
