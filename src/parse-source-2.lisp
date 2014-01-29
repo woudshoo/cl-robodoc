@@ -19,7 +19,7 @@
 
 
 (project-pathname:define project-path (:asdf "cl-robodoc")
-  (:resources "resources"))
+  (:resources "resources/"))
 
 (defparameter *resources* nil)
 
@@ -236,5 +236,9 @@ which will be exported to target-dir."
   (format t "Total Size of Resources: ~A~%" 
 	  (if *resources* (length *resources*) "Not Loaded"))
   (read-config-file)
-  (source-dir-to-html-classes  (second argv) 
-			       (third argv)))
+  (if (= 3 (length argv)) 
+      (source-dir-to-html-classes  (second argv) 
+				   (third argv))
+      (format t "~%~%Usage
+
+   clr source-directory target-directory~%")))
