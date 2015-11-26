@@ -213,7 +213,7 @@ on the class-name."
 	     (#\c (setf (class-description-class-entry cd) entry))
 	     (#\m (push entry (class-description-method-entries cd)))
 	     (#\p (push entry (class-description-property-entries cd)))
-	     (#\f (push entry (class-description-function-entries cd))))
+	     ((#\f #\t \#C) (push entry (class-description-function-entries cd))))
 	   (setf result (fset:with result (name-of-group entry) cd)))))
     result))
 
