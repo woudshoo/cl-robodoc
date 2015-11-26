@@ -19,7 +19,7 @@
 
 
 (project-pathname:define project-path (:asdf "cl-robodoc")
-  (:resources "resources"))
+  (:resources "resources/"))
 
 (defparameter *resources* nil)
 
